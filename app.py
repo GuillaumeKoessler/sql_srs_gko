@@ -22,11 +22,11 @@ muffin,3
 food_items = pd.read_csv(io.StringIO(csv2))
 
 # query de la solution + table solution
-answer = """
+answer_str = """
 SELECT * FROM beverages
 CROSS JOIN food_items
 """
-solution = duckdb.sql(answer).df()
+solution_df = duckdb.sql(answer_str).df()
 
 # Mise en page
 st.header("enter your code:")
@@ -42,14 +42,32 @@ with st.sidebar:
     st.write("Vous avez choisi", type_exec)
 
 # Saisie de la requête
-query = st.text_area(label="Entrez ici votre requête",)
+query_str = st.text_area(label="Entrez ici votre requête",)
 
 # Calcul de la table en sortie
-if query:
-    sortie = duckdb.sql(query).df()
-    # Affichage de la sortie
-    st.write("Table en sortie :")
-    st.dataframe(sortie)
+if query_str:
+    try:
+        sortie_df = duckdb.sql(query_str).df()
+        # Affichage de la sortie
+        st.write("Table en sortie :")
+        st.dataframe(sortie_df)
+        try:
+            sortie_df = sortie_df[solution_df.columns]
+            st.dataframe(sortie_df.compare(solution_df))
+        except KeyError as e :
+            st.write("Noms de colonnes non identiques")
+
+        nb_line_diff = sortie_df.shape[0] - solution_df.shape[0]
+        if nb_line_diff > 0:
+            st.write(
+                f"Le résultat à {nb_line_diff} lignes en trop"
+            )
+        if nb_line_diff < 0:
+            st.write(
+                f"Le résultat à {abs(nb_line_diff)} lignes en moins"
+            )
+    except:
+        st.write("Erreur de syntaxe SQL")
 
 # Présentation des sources
 tab2, tab3 = st.tabs(["Tables", "Solution"])
@@ -60,7 +78,7 @@ with tab2:
     st.write("table: food_items")
     st.dataframe(food_items)
     st.write("expected:")
-    st.dataframe(solution)
+    st.dataframe(solution_df)
 
 with tab3:
-    st.write(answer)
+    st.write(answer_str)
