@@ -1,32 +1,33 @@
-import streamlit as st
-import pandas as pd
-import duckdb
 import io
+
+import duckdb
+import pandas as pd
+import streamlit as st
 
 # données sources
 
-csv = """
+CSV = """
 beverage,price
 orange juice,2.5
 Expresso,2
 Tea,3
 """
-beverages = pd.read_csv(io.StringIO(csv))
+beverages = pd.read_csv(io.StringIO(CSV))
 
-csv2 = """
+CSV2 = """
 food_item,food_price
 cookie juice,2.5
 chocolatine,2
 muffin,3
 """
-food_items = pd.read_csv(io.StringIO(csv2))
+food_items = pd.read_csv(io.StringIO(CSV2))
 
 # query de la solution + table solution
-answer_str = """
+ANSWER_STR = """
 SELECT * FROM beverages
 CROSS JOIN food_items
 """
-solution_df = duckdb.sql(answer_str).df()
+solution_df = duckdb.sql(ANSWER_STR).df()
 
 # Mise en page
 st.header("enter your code:")
@@ -79,4 +80,4 @@ with tab2:
     st.dataframe(solution_df)
 
 with tab3:
-    st.write(answer_str)
+    st.write(ANSWER_STR)
