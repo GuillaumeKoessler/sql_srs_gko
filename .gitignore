@@ -1,4 +1,5 @@
 .idea/
 venv*/
-
+data/
+test_db.py
 *.csv
