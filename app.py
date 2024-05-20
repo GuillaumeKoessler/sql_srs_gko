@@ -1,3 +1,4 @@
+import ast
 import io
 
 import duckdb
@@ -27,11 +28,11 @@ with st.sidebar:
     )
     st.write("Vous avez choisi", type_exec)
 
-# selections des exercices en lien avec la connections
-list_exo_sl_df = con.execute(
-    f"SELECT * FROM memory_state_df WHERE theme = LOWER('{type_exec}')"
-).df()
-st.dataframe(list_exo_sl_df)
+    # selections des exercices en lien avec la connections
+    list_exo_sl_df = con.execute(
+        f"SELECT * FROM memory_state_df WHERE theme = LOWER('{type_exec}')"
+    ).df()
+    st.dataframe(list_exo_sl_df)
 
 # Saisie de la requête
 query_str = st.text_area(
@@ -39,36 +40,40 @@ query_str = st.text_area(
 )
 
 # Calcul de la table en sortie
-# if query_str:
-#     try:
-#         sortie_df = duckdb.sql(query_str).df()
-#         # Affichage de la sortie
-#         st.write("Table en sortie :")
-#         st.dataframe(sortie_df)
-#         try:
-#             sortie_df = sortie_df[solution_df.columns]
-#             st.dataframe(sortie_df.compare(solution_df))
-#         except KeyError as e:
-#             st.write("Noms de colonnes non identiques")
-#
-#         nb_line_diff = sortie_df.shape[0] - solution_df.shape[0]
-#         if nb_line_diff > 0:
-#             st.write(f"Le résultat à {nb_line_diff} lignes en trop")
-#         if nb_line_diff < 0:
-#             st.write(f"Le résultat à {abs(nb_line_diff)} lignes en moins")
-#     except:
-#         st.write("Erreur de syntaxe SQL")
+if query_str:
+    try:
+        sortie_df = con.execute(query_str).df()
+        # sortie_df = duckdb.sql(query_str).df()
+        # Affichage de la sortie
+        st.write("Table en sortie :")
+        st.dataframe(sortie_df)
+        # try:
+        #     sortie_df = sortie_df[solution_df.columns]
+        #     st.dataframe(sortie_df.compare(solution_df))
+        # except KeyError as e:
+        #     st.write("Noms de colonnes non identiques")
+        #
+        # nb_line_diff = sortie_df.shape[0] - solution_df.shape[0]
+        # if nb_line_diff > 0:
+        #     st.write(f"Le résultat à {nb_line_diff} lignes en trop")
+        # if nb_line_diff < 0:
+        #     st.write(f"Le résultat à {abs(nb_line_diff)} lignes en moins")
+    except:
+        st.write("Erreur de syntaxe SQL")
 
 # Présentation des sources
-# tab2, tab3 = st.tabs(["Tables", "Solution"])
-#
-# with tab2:
-#     st.write("table: beverages")
-#     st.dataframe(beverages)
-#     st.write("table: food_items")
-#     st.dataframe(food_items)
-#     st.write("expected:")
-#     st.dataframe(solution_df)
-#
+tab2, tab3 = st.tabs(["Tables", "Solution"])
+
+with tab2:
+    exe_tables = ast.literal_eval(list_exo_sl_df.loc[0, "tables"])
+    for tbl in exe_tables:
+        st.write(f"table: {tbl}")
+        table_print = con.execute(
+            f"SELECT * FROM {tbl}"
+        ).df()
+        st.dataframe(table_print)
+    # st.write("expected:")
+    # st.dataframe(solution_df)
+
 # with tab3:
 #     st.write(ANSWER_STR)
