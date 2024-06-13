@@ -75,5 +75,8 @@ with tab2:
     # st.write("expected:")
     # st.dataframe(solution_df)
 
-# with tab3:
-#     st.write(ANSWER_STR)
+with tab3:
+    ANSWER_STR = list_exo_sl_df.loc[0, "exercice_name"]
+    with open(f"answers/{ANSWER_STR}.sql", "r") as f:
+        answer = f.read()
+    st.write(answer)
