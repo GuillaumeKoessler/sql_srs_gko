@@ -21,10 +21,10 @@ with st.sidebar:
     )
     st.write("Vous avez choisi", type_exec)
 
-    # selections des exercices en lien avec la connections
+    # selections des exercices en lien avec la connexion
     list_exo_sl_df = con.execute(
         f"SELECT * FROM memory_state_df WHERE theme = LOWER('{type_exec}')"
-    ).df()
+    ).df().sort_values("last_reviewed").reset_index()
     st.dataframe(list_exo_sl_df)
 
     # recherche du script sql solution
@@ -64,7 +64,7 @@ if query_str:
 tab2, tab3 = st.tabs(["Tables", "Solution"])
 
 with tab2:
-    exe_tables = ast.literal_eval(list_exo_sl_df.loc[0, "tables"])
+    exe_tables = list_exo_sl_df.loc[0, "tables"]
     for tbl in exe_tables:
         st.write(f"table: {tbl}")
         table_print = con.execute(
