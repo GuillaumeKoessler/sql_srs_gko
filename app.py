@@ -27,9 +27,13 @@ st.header("enter your code:")
 
 # ajout de la slide bar
 with st.sidebar:
+    # recuperation des themes dexo disponibles
+    theme_list = (
+        con.execute("SELECT DISTINCT theme FROM memory_state_df").df()["theme"].unique()
+    )
     type_exec = st.selectbox(
         "Veuillez choisir une catégorie d'exercice",
-        ("Cross_Joins", "GroupBy", "Window_Functions"),
+        theme_list,
         index=None,
         placeholder="Sélection du type d'exercice...",
     )
