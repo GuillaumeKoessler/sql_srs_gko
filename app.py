@@ -37,14 +37,18 @@ with st.sidebar:
         index=None,
         placeholder="Sélection du type d'exercice...",
     )
-    st.write("Vous avez choisi", type_exec)
+    if type_exec:
+        st.write("Vous avez choisi", type_exec)
+        list_exe_query = (
+            f"SELECT * FROM memory_state_df WHERE theme = LOWER('{type_exec}')"
+        )
+
+    else:
+        list_exe_query = "SELECT * FROM memory_state_df"
 
     # selections des exercices en lien avec la connexion
     list_exo_sl_df = (
-        con.execute(f"SELECT * FROM memory_state_df WHERE theme = LOWER('{type_exec}')")
-        .df()
-        .sort_values("last_reviewed")
-        .reset_index()
+        con.execute(list_exe_query).df().sort_values("last_reviewed").reset_index()
     )
     st.dataframe(list_exo_sl_df)
 
