@@ -13,11 +13,13 @@ con = duckdb.connect(database="data/exercices_sql_tables.duckdb", read_only=Fals
 exe_list = {
     "theme": ["cross_joins", "cross_joins", "window_functions"],
     "exercice_name": ["beverages_and_food", "sizes_and_trademarks", "simple_window"],
-    "tables": [["beverages", "food_items"], ["sizes", "trademarks"],  ["simple_window"]],
+    "tables": [["beverages", "food_items"], ["sizes", "trademarks"], ["simple_window"]],
     "last_reviewed": ["1980-01-01", "1970-01-01", "1970-01-01"],
 }
 memory_state_df = pd.DataFrame(exe_list)
-con.execute("CREATE TABLE IF NOT EXISTS memory_state_df AS SELECT * FROM memory_state_df")
+con.execute(
+    "CREATE TABLE IF NOT EXISTS memory_state_df AS SELECT * FROM memory_state_df"
+)
 
 # -------------------------------------------------------------------------------------
 # DONNEES SOURCES POUR EXO
@@ -61,6 +63,4 @@ Lewis
 trademarks = pd.read_csv(io.StringIO(CSV_TRADEMARKS))
 con.execute("CREATE TABLE IF NOT EXISTS trademarks AS SELECT * FROM trademarks")
 
-# -------------------------------------------------------------------------------------
-# CROSS-JOINS EXERCICES
-# -------------------------------------------------------------------------------------
+con.close()
