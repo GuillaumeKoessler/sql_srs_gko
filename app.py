@@ -6,8 +6,46 @@ import os
 import duckdb
 import pandas as pd
 import streamlit as st
+from datetime import date, timedelta
+
+
+def check_user_solution(user_query: str) -> None:
+    """
+    Verification de la query SQL saisie par l'user via :
+    -1: comparaison totale des tables
+    -2: comparaison du nombre de lignes
+    """
+    try:
+        sortie_df = con.execute(user_query).df()
+        # Affichage de la sortie
+        st.write("Table en sortie :")
+        st.dataframe(sortie_df)
+        try:
+            sortie_df = sortie_df[solution_df.columns]
+            compare_df = sortie_df.compare(solution_df)
+            nb_line_diff = sortie_df.shape[0] - solution_df.shape[0]
+            if compare_df.shape == (0, 0):
+                st.write("Bravo !")
+                st.balloons()
+            else:
+                st.dataframe(compare_df)
+        except KeyError as e:
+            nb_line_diff = sortie_df.shape[0] - solution_df.shape[0]
+            st.write("Noms de colonnes non identiques")
+            if nb_line_diff > 0:
+                st.write(f"Le résultat à {nb_line_diff} lignes en trop")
+            if nb_line_diff < 0:
+                st.write(f"Le résultat à {abs(nb_line_diff)} lignes en moins")
+    except duckdb.ParserException as pe:
+        st.write("Erreur de syntaxe SQL")
+    except duckdb.CatalogException as ce:
+        st.write("La(les) table(s) n'existe(nt) pas")
+    except duckdb.BinderException as be:
+        st.write("La(les) colonne(s) n'existe(nt) pas")
+
 
 # on crée le dossier data si il n'existe pas
+
 
 if "data" not in os.listdir():
     logging.error(os.listdir())
