@@ -12,8 +12,8 @@ con = duckdb.connect(database="data/exercices_sql_tables.duckdb", read_only=Fals
 
 exe_list = {
     "theme": ["cross_joins", "cross_joins", "window_functions"],
-    "exercice_name": ["beverages_and_food", "sizes_and_trademarks", "simple_window"],
-    "tables": [["beverages", "food_items"], ["sizes", "trademarks"], ["simple_window"]],
+    "exercice_name": ["beverages_and_food", "sizes_and_trademarks", "avg_dept_wages"],
+    "tables": [["beverages", "food_items"], ["sizes", "trademarks"], ["wages"]],
     "last_reviewed": ["1980-01-01", "1970-01-01", "1970-01-01"],
 }
 memory_state_df = pd.DataFrame(exe_list)
@@ -62,5 +62,26 @@ Lewis
 """
 trademarks = pd.read_csv(io.StringIO(CSV_TRADEMARKS))
 con.execute("CREATE TABLE IF NOT EXISTS trademarks AS SELECT * FROM trademarks")
+
+CSV_WAGES = """
+name,wage,department
+Toufik,60000,IT
+Jean-Nicolas,75000,HR
+Daniel,55000,SALES
+Kaouter,80000,IT
+Sylvie,70000,IT
+Sebastien,90000,HR
+Diane,65000,SALES
+Romain,72000,IT
+François,68000,HR
+Anna,85000,SALES
+Zeinaba,100000,IT
+Gregory,120000,IT
+Karima,95000,HR
+Arthur,83000,SALES
+Benjamin,110000,CEO
+"""
+wages = pd.read_csv(io.StringIO(CSV_WAGES))
+con.execute("CREATE TABLE IF NOT EXISTS wages AS SELECT * FROM wages")
 
 con.close()

@@ -6,8 +6,46 @@ import os
 import duckdb
 import pandas as pd
 import streamlit as st
+from datetime import date, timedelta
+
+
+def check_user_solution(user_query: str) -> None:
+    """
+    Verification de la query SQL saisie par l'user via :
+    -1: comparaison totale des tables
+    -2: comparaison du nombre de lignes
+    """
+    try:
+        sortie_df = con.execute(user_query).df()
+        # Affichage de la sortie
+        st.write("Table en sortie :")
+        st.dataframe(sortie_df)
+        try:
+            sortie_df = sortie_df[solution_df.columns]
+            compare_df = sortie_df.compare(solution_df)
+            nb_line_diff = sortie_df.shape[0] - solution_df.shape[0]
+            if compare_df.shape == (0, 0):
+                st.write("Bravo !")
+                st.balloons()
+            else:
+                st.dataframe(compare_df)
+        except KeyError as e:
+            nb_line_diff = sortie_df.shape[0] - solution_df.shape[0]
+            st.write("Noms de colonnes non identiques")
+            if nb_line_diff > 0:
+                st.write(f"Le résultat à {nb_line_diff} lignes en trop")
+            if nb_line_diff < 0:
+                st.write(f"Le résultat à {abs(nb_line_diff)} lignes en moins")
+    except duckdb.ParserException as pe:
+        st.write("Erreur de syntaxe SQL")
+    except duckdb.CatalogException as ce:
+        st.write("La(les) table(s) n'existe(nt) pas")
+    except duckdb.BinderException as be:
+        st.write("La(les) colonne(s) n'existe(nt) pas")
+
 
 # on crée le dossier data si il n'existe pas
+
 
 if "data" not in os.listdir():
     logging.error(os.listdir())
@@ -27,20 +65,27 @@ st.header("enter your code:")
 
 # ajout de la slide bar
 with st.sidebar:
+    # recuperation des themes dexo disponibles
+    theme_list = (
+        con.execute("SELECT DISTINCT theme FROM memory_state_df").df()["theme"].unique()
+    )
     type_exec = st.selectbox(
         "Veuillez choisir une catégorie d'exercice",
-        ("Cross_Joins", "GroupBy", "Window_Functions"),
+        theme_list,
         index=None,
         placeholder="Sélection du type d'exercice...",
     )
-    st.write("Vous avez choisi", type_exec)
+    if type_exec:
+        st.write("Vous avez choisi", type_exec)
+        list_exe_query = (
+            f"SELECT * FROM memory_state_df WHERE theme = LOWER('{type_exec}')"
+        )
+    else:
+        list_exe_query = "SELECT * FROM memory_state_df"
 
-    # selections des exercices en lien avec la connexion
+    # selections des exercices en lien avec la selection
     list_exo_sl_df = (
-        con.execute(f"SELECT * FROM memory_state_df WHERE theme = LOWER('{type_exec}')")
-        .df()
-        .sort_values("last_reviewed")
-        .reset_index()
+        con.execute(list_exe_query).df().sort_values("last_reviewed").reset_index()
     )
     st.dataframe(list_exo_sl_df)
 
@@ -57,23 +102,17 @@ query_str = st.text_area(
 
 # Calcul de la table en sortie
 if query_str:
-    try:
-        sortie_df = con.execute(query_str).df()
-        # Affichage de la sortie
-        st.write("Table en sortie :")
-        st.dataframe(sortie_df)
-        try:
-            sortie_df = sortie_df[solution_df.columns]
-            st.dataframe(sortie_df.compare(solution_df))
-        except KeyError as e:
-            st.write("Noms de colonnes non identiques")
-            nb_line_diff = sortie_df.shape[0] - solution_df.shape[0]
-        if nb_line_diff > 0:
-            st.write(f"Le résultat à {nb_line_diff} lignes en trop")
-        if nb_line_diff < 0:
-            st.write(f"Le résultat à {abs(nb_line_diff)} lignes en moins")
-    except:
-        st.write("Erreur de syntaxe SQL")
+    check_user_solution(query_str)
+
+for n_days in [1, 2, 7, 21]:
+    if st.button(f"Revoir dans {n_days} jours"):
+        next_review = date.today() + timedelta(days=n_days)
+        con.execute(f"UPDATE memory_state_df SET last_reviewed = '{next_review}' WHERE exercice_name= '{EXO_NAME_STR}'")
+        st.rerun()
+
+if st.button('Reset'):
+    con.execute("UPDATE memory_state_df SET last_reviewed = '1970-01-01'")
+    st.rerun()
 
 # Présentation des sources
 tab2, tab3 = st.tabs(["Tables", "Solution"])
