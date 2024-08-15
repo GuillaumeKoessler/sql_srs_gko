@@ -2,11 +2,11 @@ import ast
 import io
 import logging
 import os
+from datetime import date, timedelta
 
 import duckdb
 import pandas as pd
 import streamlit as st
-from datetime import date, timedelta
 
 
 def check_user_solution(user_query: str) -> None:
@@ -107,10 +107,12 @@ if query_str:
 for n_days in [1, 2, 7, 21]:
     if st.button(f"Revoir dans {n_days} jours"):
         next_review = date.today() + timedelta(days=n_days)
-        con.execute(f"UPDATE memory_state_df SET last_reviewed = '{next_review}' WHERE exercice_name= '{EXO_NAME_STR}'")
+        con.execute(
+            f"UPDATE memory_state_df SET last_reviewed = '{next_review}' WHERE exercice_name= '{EXO_NAME_STR}'"
+        )
         st.rerun()
 
-if st.button('Reset'):
+if st.button("Reset"):
     con.execute("UPDATE memory_state_df SET last_reviewed = '1970-01-01'")
     st.rerun()
 
